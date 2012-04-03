@@ -10,10 +10,16 @@
  * timer interrupt every 4.096 ms
  * every 25 8-bit overflow we get ~100 ms delay
  *
- * http://easyelectronics.ru/avr-uchebnyj-kurs-tajmery.html
+ * Timers:
+ *     http://easyelectronics.ru/avr-uchebnyj-kurs-tajmery.html
  *
- * http://maxembedded.wordpress.com/2011/06/24/avr-timers-timer0-2
- * http://maxembedded.wordpress.com/2011/06/28/avr-timers-timer1
+ *     http://maxembedded.wordpress.com/2011/06/24/avr-timers-timer0-2
+ *     http://maxembedded.wordpress.com/2011/06/28/avr-timers-timer1
+ *     http://maxembedded.wordpress.com/2011/06/28/avr-timers-timer2
+ *
+ * Audio:
+ *     http://avrpcm.blogspot.com/2010/11/playing-8-bit-pcm-using-any-avr.html
+ *     http://www.arduino.cc/playground/Code/PCMAudio
  *
  * BUTTON[0..2] -> PD2, PD3, PB2
  * LED[0..11]   -> PA[0..7], PC[0..3]
