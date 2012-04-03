@@ -23,6 +23,7 @@ typedef struct led_state {
 	button_t       last_pressed_b;
 	uint32_t       last_pressed_ms;
 	uint16_t       leds_matrix[3];
+	uint32_t       timer_counter;
 	hw_fire_leds_t hw_fire_leds;
 } led_state_t;
 
