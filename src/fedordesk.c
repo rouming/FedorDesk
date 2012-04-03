@@ -88,7 +88,7 @@ void desk_timer_100ms_callback()
 	case button1:
 		if (s_leds_state.leds_matrix[1] == 0)
 			s_leds_state.leds_matrix[1] = 0b100100100100;
-		else if (s_leds_state.leds_matrix[1] == 0b1001001001)
+		else if (s_leds_state.leds_matrix[1] & 1)
 			s_leds_state.leds_matrix[1] = 0;
 		else
 			s_leds_state.leds_matrix[0] >>= 1;
