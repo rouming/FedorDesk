@@ -14,6 +14,11 @@
  *
  * http://maxembedded.wordpress.com/2011/06/24/avr-timers-timer0-2
  * http://maxembedded.wordpress.com/2011/06/28/avr-timers-timer1
+ *
+ * BUTTON[0..2] -> PD2, PD3, PB2
+ * LED[0..11]   -> PA[0..7], PC[0..3]
+ * GR[0..2]     -> PB[4..6]
+ *
  */
 
 // initialize timer, interrupt and variable
@@ -29,23 +34,62 @@ void timer0_init()
 	TIMSK |= (1 << TOIE1);
 }
 
-void int0_init()
+void external_int_init()
 {
-	// enable negative edge on INT0
-	MCUCR |= (1<<ISC01);
-	// enable INT0
-	GICR |= (1<<INT0);
+	// enable falling edge on INT0, INT1
+	MCUCR |= (1<<ISC01) | (1<<ISC11);
+	// enable falling edge on INT2
+	MCUCSR &= ~(1<<ISC2);
+
+	// enable INT0, INT1, INT2
+	GICR |= (1<<INT0) | (1<<INT1) | (1<<INT2);
 }
 
-
-void int1_init()
+void init_io_ports()
 {
-	// enable negative edge on INT1
-	MCUCR |= (1<<ISC11);
-	// enable INT1
-	GICR |= (1<<INT1);
+	/*
+	 * LED[0..11]   -> PA[0..7], PC[0..3]
+	 * GR[0..2]     -> PB[4..6]
+	 */
+
+	// 0..7 A pins as output
+	DDRA |= 0b11111111;
+	// 0..3 C pins as output
+	DDRC |= 0b00000111;
+	// 4..6 B pins as output
+	DDRB |= 0b01110000;
+
+	// 0..7 A pins to low
+	PORTA &= ~0b11111111;
+	// 0..3 C pins to low
+	PORTC &= ~0b00000111;
+	// 4..6 B pins to high
+	PORTB |=  0b01110000;
 }
 
+static void hw_fire_leds(const uint16_t* leds, uint8_t y)
+{
+	// firstly turn off leds
+
+	// 0..7 A pins to low
+	PORTA &= ~0b11111111;
+	// 0..3 C pins to low
+	PORTC &= ~0b00000111;
+
+	// turn on
+	if (*leds) {
+		// ground to low
+		PORTB &= ~(1 << (y + 4));
+
+		// leds to high
+		PORTA |= (*leds & 0xff);
+		PORTC |= ((*leds >> 8) & 0b1111);
+	}
+	// turn off
+	else
+		// ground to high
+		PORTB |= (1 << (y + 4));
+}
 
 // TIMER0 overflow interrupt service routine
 // called whenever TCNT0 overflows
@@ -68,24 +112,31 @@ ISR(TIMER0_OVF_vect)
 
 ISR(INT0_vect)
 {
-	//TODO: add press rate control
 	desk_button_pressed(button0);
 }
 
 ISR(INT1_vect)
 {
-	//TODO: add press rate control
 	desk_button_pressed(button1);
+}
+
+ISR(INT2_vect)
+{
+	desk_button_pressed(button2);
 }
 
 int main()
 {
-	// initialize timer
+	// init io ports
+	init_io_ports();
+	// init timer
 	timer0_init();
 
-	// initialize int0 and int1
-	int0_init();
-	int1_init();
+	// init external interrupts
+	external_int_init();
+
+	// init leds
+	desk_init_leds(&hw_fire_leds);
 
 	// enable global interrupts
 	sei();
