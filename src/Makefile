@@ -1,5 +1,5 @@
 CC=avr-gcc
-CFLAGS=-c -Wall -mmcu=atmega16
+CFLAGS=-c -Wall -mmcu=atmega16 -std=c99
 
 all: fedordesk
 
