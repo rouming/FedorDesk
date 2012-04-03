@@ -55,14 +55,14 @@ void init_io_ports()
 	// 0..7 A pins as output
 	DDRA |= 0b11111111;
 	// 0..3 C pins as output
-	DDRC |= 0b00000111;
+	DDRC |= 0b00001111;
 	// 4..6 B pins as output
 	DDRB |= 0b01110000;
 
 	// 0..7 A pins to low
 	PORTA &= ~0b11111111;
 	// 0..3 C pins to low
-	PORTC &= ~0b00000111;
+	PORTC &= ~0b00001111;
 	// 4..6 B pins to high
 	PORTB |=  0b01110000;
 }
@@ -74,7 +74,7 @@ static void hw_fire_leds(const uint16_t* leds, uint8_t y)
 	// 0..7 A pins to low
 	PORTA &= ~0b11111111;
 	// 0..3 C pins to low
-	PORTC &= ~0b00000111;
+	PORTC &= ~0b00001111;
 
 	// turn on
 	if (*leds) {
