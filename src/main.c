@@ -81,6 +81,8 @@ static void hw_fire_leds(const uint16_t* leds, uint8_t y)
 	PORTA &= ~0b11111111;
 	// 0..3 C pins to low
 	PORTC &= ~0b00001111;
+	// 4..6 B pins to high
+	PORTB |= 0b01110000;
 
 	// turn on
 	if (*leds) {
