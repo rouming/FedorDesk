@@ -93,10 +93,6 @@ static void hw_fire_leds(const uint16_t* leds, uint8_t y)
 		PORTA |= (*leds & 0xff);
 		PORTC |= ((*leds >> 8) & 0b1111);
 	}
-	// turn off
-	else
-		// ground to high
-		PORTB |= (1 << (y + 4));
 }
 
 // TIMER0 overflow interrupt service routine

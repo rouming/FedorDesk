@@ -6,14 +6,22 @@ static led_state_t s_leds_state;
 
 static void desk_clear_leds()
 {
+	hw_fire_leds_t cb = s_leds_state.hw_fire_leds;
 	memset(&s_leds_state, 0, sizeof(s_leds_state));
+	s_leds_state.hw_fire_leds = cb;
 }
 
-static void desk_fire_leds(const led_state_t* led_state)
+static void desk_fire_leds()
 {
 	// fire led
-	for (uint8_t y = 0; y < BUTTONS_NUM; ++y)
-		led_state->hw_fire_leds(&led_state->leds_matrix[y], y);
+	for (uint8_t y = 0; y < BUTTONS_NUM; ++y) {
+		if (s_leds_state.leds_matrix[y] != 0) {
+			s_leds_state.hw_fire_leds(&s_leds_state.leds_matrix[y], y);
+			return;
+		}
+	}
+	// turn off
+	s_leds_state.hw_fire_leds(&s_leds_state.leds_matrix[0], 0);
 }
 
 void desk_init_leds(hw_fire_leds_t cb)
@@ -35,8 +43,11 @@ void desk_button_pressed(button_t b)
 	// if button is the same
 	if (s_leds_state.last_pressed_b == b) {
 		// turn off leds if speed was the last
-		if (s_leds_state.speed == led_speed2)
+		if (s_leds_state.speed == led_speed2) {
 			desk_clear_leds();
+			// turn off
+			desk_fire_leds();
+		}
 		// increase speed
 		else
 			++s_leds_state.speed;
@@ -61,13 +72,13 @@ void desk_timer_100ms_callback()
 	uint8_t delay;
 	switch (s_leds_state.speed) {
 	case led_speed0:
-		delay = 2; // 200 ms
+		delay = 10; // 1000 ms
 		break;
 	case led_speed1:
-		delay = 4; // 400 ms
+		delay = 5; // 500 ms
 		break;
 	case led_speed2:
-		delay = 8; // 800 ms
+		delay = 2; // 200 ms
 		break;
 	default:
 		// unknown state
@@ -91,7 +102,7 @@ void desk_timer_100ms_callback()
 		else if (s_leds_state.leds_matrix[1] & 1)
 			s_leds_state.leds_matrix[1] = 0;
 		else
-			s_leds_state.leds_matrix[0] >>= 1;
+			s_leds_state.leds_matrix[1] >>= 1;
 		break;
 	case button2:
 		if (s_leds_state.leds_matrix[0] == 0 &&
