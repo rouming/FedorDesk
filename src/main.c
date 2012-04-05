@@ -104,7 +104,7 @@ static void hw_fire_leds(const uint16_t* leds, uint8_t y)
 ISR(TIMER0_OVF_vect)
 {
 	// global variable to count the number of overflows
-	static uint8_t s_overflow = 0;
+	static uint16_t s_overflow = 0;
 
 	// keep a track of number of overflows
 	s_overflow++;
