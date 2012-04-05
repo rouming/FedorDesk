@@ -1,10 +1,14 @@
 CC=avr-gcc
-CFLAGS=-c -Wall -mmcu=atmega16 -std=c99
+MMCU=atmega16
 
-all: fedordesk
+F_CLK=F_CLK=1000000UL
+CFLAGS=-c -Wall -gdwarf-2 -mmcu=$(MMCU) -std=gnu99 -D$(F_CLK)
+LFLAGS=-mmcu=$(MMCU)
 
-fedordesk: main.o fedordesk.o
-	$(CC) main.o fedordesk.o -o fedordesk
+all: fedordesk.elf
+
+fedordesk.elf: main.o fedordesk.o
+	$(CC) $(LFLAGS) main.o fedordesk.o -o fedordesk.elf
 
 clean:
-	rm -rf *o *~ fedordesk
+	rm -rf *o *~ fedordesk.elf
