@@ -5,10 +5,10 @@
 
 /*
  * ATMega16
- * 16MHz clock
- * prescaler 256
- * timer interrupt every 4.096 ms
- * every 25 8-bit overflow we get ~100 ms delay
+ * 1MHz clock
+ * prescaler 8
+ * timer overflow interrupt every 2.048 ms
+ * every 50 8-bit overflow we get ~102 ms delay
  *
  * Timers:
  *     http://easyelectronics.ru/avr-uchebnyj-kurs-tajmery.html
@@ -28,19 +28,19 @@
  */
 
 // initialize timer, interrupt and variable
-void timer0_init()
+static void timer0_init()
 {
-	// set up timer with prescaler = 256
-	TCCR0 |= (1 << CS02);
+	// set up timer with prescaler = 8
+	TCCR0 |= (1 << CS01);
 
 	// initialize counter
 	TCNT0 = 0;
 
 	// enable overflow interrupt
-	TIMSK |= (1 << TOIE1);
+	TIMSK |= (1 << TOIE0);
 }
 
-void external_int_init()
+static void external_int_init()
 {
 	// enable falling edge on INT0, INT1
 	MCUCR |= (1<<ISC01) | (1<<ISC11);
@@ -51,7 +51,7 @@ void external_int_init()
 	GICR |= (1<<INT0) | (1<<INT1) | (1<<INT2);
 }
 
-void init_io_ports()
+static void init_io_ports()
 {
 	/*
 	 * LED[0..11]   -> PA[0..7], PC[0..3]
@@ -107,8 +107,8 @@ ISR(TIMER0_OVF_vect)
 	// keep a track of number of overflows
 	s_overflow++;
 
-	// 25 overflows = ~100 ms delay
-	if (s_overflow == 25) {
+	// 50 overflows = ~102 ms delay
+	if (s_overflow == 50) {
 		desk_timer_100ms_callback();
 
 		// reset overflow counter
