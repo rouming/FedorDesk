@@ -6,9 +6,12 @@
 /*
  * ATMega16
  * 1MHz clock
- * prescaler 8
- * timer overflow interrupt every 2.048 ms
- * every 50 8-bit overflow we get ~102 ms delay
+ * timer 8-bit overflow interrupt every 256 us
+ * every 400 8-bit overflow we get ~102.4 ms delay
+ * i.e.: 1000ms / (1000'000Hz / 256) * 400 ~ 102.4ms
+ * for power saving we never fire all leds, we try to flicker them
+ * i.e. we flicker every overflow interrupt, i.e. with ~3906.25Hz
+ *
  *
  * Timers:
  *     http://easyelectronics.ru/avr-uchebnyj-kurs-tajmery.html
@@ -27,11 +30,17 @@
  *
  */
 
+// leds state
+static uint8_t s_leds_index;
+static uint8_t s_leds_layer;
+static uint16_t	s_leds_state;
+
 // initialize timer, interrupt and variable
 static void timer0_init()
 {
+	// NO PRESCALER FOR NOW
 	// set up timer with prescaler = 8
-	TCCR0 |= (1 << CS01);
+	//TCCR0 |= (1 << CS01);
 
 	// initialize counter
 	TCNT0 = 0;
@@ -75,6 +84,14 @@ static void init_io_ports()
 
 static void hw_fire_leds(const uint16_t* leds, uint8_t y)
 {
+	// save leds state
+	s_leds_layer = y;
+	s_leds_state = *leds;
+	s_leds_index = 0;
+}
+
+static void fire_leds()
+{
 	// firstly turn off leds
 
 	// 0..7 A pins to low
@@ -85,13 +102,18 @@ static void hw_fire_leds(const uint16_t* leds, uint8_t y)
 	PORTB |= 0b01110000;
 
 	// turn on
-	if (*leds) {
+	if (s_leds_state) {
+		uint16_t led = 0;
+		// get set bit in leds state
+		while (!led)
+			led = s_leds_state & (1 << (s_leds_index++ % LEDS_NUM));
+
 		// ground to low
-		PORTB &= ~(1 << (y + 4));
+		PORTB &= ~(1 << (s_leds_layer + 4));
 
 		// leds to high
-		PORTA |= (*leds & 0xff);
-		PORTC |= ((*leds >> 8) & 0b1111);
+		PORTA |= (led & 0xff);
+		PORTC |= ((led >> 8) & 0b1111);
 	}
 }
 
@@ -105,8 +127,12 @@ ISR(TIMER0_OVF_vect)
 	// keep a track of number of overflows
 	s_overflow++;
 
-	// 50 overflows = ~102 ms delay
-	if (s_overflow == 50) {
+	// fire leds on every interrupt for power savings
+	// i.e. do persistence of vision (pov) with frequent flicking
+	fire_leds();
+
+	// 400 overflows = ~102 ms delay
+	if (s_overflow == 400) {
 		desk_timer_100ms_callback();
 
 		// reset overflow counter
