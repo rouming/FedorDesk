@@ -38,9 +38,8 @@ static uint16_t	s_leds_state;
 // initialize timer, interrupt and variable
 static void timer0_init()
 {
-	// NO PRESCALER FOR NOW
-	// set up timer with prescaler = 8
-	//TCCR0 |= (1 << CS01);
+	// No any prescaler
+	TCCR0 |= (1 << CS00);
 
 	// initialize counter
 	TCNT0 = 0;
