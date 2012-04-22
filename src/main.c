@@ -26,7 +26,7 @@
  *
  * BUTTON[0..2] -> PD2, PD3, PB2
  * LED[0..11]   -> PA[0..7], PC[0..3]
- * GR[0..2]     -> PB[4..6]
+ * GR[0..2]     -> PC[4..6]
  *
  */
 
@@ -63,22 +63,22 @@ static void init_io_ports()
 {
 	/*
 	 * LED[0..11]   -> PA[0..7], PC[0..3]
-	 * GR[0..2]     -> PB[4..6]
+	 * GR[0..2]     -> PC[4..6]
 	 */
 
 	// 0..7 A pins as output
 	DDRA |= 0b11111111;
 	// 0..3 C pins as output
 	DDRC |= 0b00001111;
-	// 4..6 B pins as output
-	DDRB |= 0b01110000;
+	// 4..6 C pins as output
+	DDRC |= 0b01110000;
 
 	// 0..7 A pins to low
 	PORTA &= ~0b11111111;
 	// 0..3 C pins to low
 	PORTC &= ~0b00001111;
-	// 4..6 B pins to high
-	PORTB |=  0b01110000;
+	// 4..6 C pins to high
+	PORTC |=  0b01110000;
 }
 
 static void hw_fire_leds(const uint16_t* leds, uint8_t y)
@@ -97,8 +97,8 @@ static void fire_leds()
 	PORTA &= ~0b11111111;
 	// 0..3 C pins to low
 	PORTC &= ~0b00001111;
-	// 4..6 B pins to high
-	PORTB |= 0b01110000;
+	// 4..6 C pins to high
+	PORTC |= 0b01110000;
 
 	// turn on
 	if (s_leds_state) {
@@ -108,7 +108,7 @@ static void fire_leds()
 			led = s_leds_state & (1 << (s_leds_index++ % LEDS_NUM));
 
 		// ground to low
-		PORTB &= ~(1 << (s_leds_layer + 4));
+		PORTC &= ~(1 << (s_leds_layer + 4));
 
 		// leds to high
 		PORTA |= (led & 0xff);
