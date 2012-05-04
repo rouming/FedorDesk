@@ -16,8 +16,10 @@ fedordesk.hex:
 	avr-objcopy -j .text -j .data -O ihex fedordesk.elf fedordesk.hex
 
 # Burning
-burn:
-	sudo avrdude -c usbasp -p m16 -u -U flash:w:fedordesk.hex
+# to avoid sudo place udev rule /etc/udev/rules.d/usbasp.rules
+# SUBSYSTEM=="usb", SYSFS{idVendor}=="1781", SYSFS{idProduct}=="0c9f", GROUP="users", MODE="0666"
+flash: all
+	avrdude -c usbasp -p m16 -u -U flash:w:fedordesk.hex
 
 clean:
 	rm -rf *o *~ fedordesk.elf fedordesk.hex
