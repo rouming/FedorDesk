@@ -18,13 +18,13 @@ all: fedordesk.elf fedordesk.hex
 fedordesk.elf: main.o fedordesk.o
 	$(CC) $(LFLAGS) main.o fedordesk.o -o fedordesk.elf
 
-# Extract intel hex for burning
+# Extract intel hex for flash burning
 fedordesk.hex:
 	avr-objcopy -j .text -j .data -O ihex fedordesk.elf fedordesk.hex
 
-# Burning
-# to avoid sudo place udev rule /etc/udev/rules.d/usbasp.rules
-# SUBSYSTEM=="usb", SYSFS{idVendor}=="1781", SYSFS{idProduct}=="0c9f", GROUP="users", MODE="0666"
+# Flash burning
+# to avoid sudo place udev rule for USBASP as /etc/udev/rules.d/usbasp.rules:
+# SUBSYSTEMS=="usb", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="05dc", GROUP="users", MODE="0666"
 flash: all
 	avrdude -c usbasp -p m16 -u -U flash:w:fedordesk.hex
 
