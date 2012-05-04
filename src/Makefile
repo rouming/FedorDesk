@@ -1,3 +1,10 @@
+#
+# Makefile for AVR ATMega16
+# Good example of makefiles for AVR
+# can be taken from
+# http://www.obdev.at/products/vusb/index.html
+# e.g. this: examples/hid-mouse/firmware/Makefile
+#
 CC=avr-gcc
 MMCU=atmega16
 
