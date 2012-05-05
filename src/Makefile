@@ -9,7 +9,8 @@ CC=avr-gcc
 MMCU=atmega16
 
 F_CLK=F_CLK=1000000UL
-CFLAGS=-c -Wall -gdwarf-2 -mmcu=$(MMCU) -std=gnu99 -D$(F_CLK)
+F_CPU=F_CPU=1000000UL
+CFLAGS=-c -O2 -Wall -gdwarf-2 -mmcu=$(MMCU) -std=gnu99 -D$(F_CLK) -D$(F_CPU)
 LFLAGS=-mmcu=$(MMCU)
 
 all: fedordesk.elf fedordesk.hex
