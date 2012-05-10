@@ -77,8 +77,8 @@ static void init_io_ports()
 	PORTA &= ~0b11111111;
 	// 0..3 C pins to low
 	PORTC &= ~0b00001111;
-	// 4..6 C pins to high
-	PORTC |=  0b01110000;
+	// 4..6 C pins to low
+	PORTC &= ~0b01110000;
 }
 
 static void hw_fire_leds(const uint16_t* leds, uint8_t y)
@@ -97,8 +97,8 @@ static void fire_leds()
 	PORTA &= ~0b11111111;
 	// 0..3 C pins to low
 	PORTC &= ~0b00001111;
-	// 4..6 C pins to high
-	PORTC |= 0b01110000;
+	// 4..6 C pins to low
+	PORTC &= ~0b01110000;
 
 	// turn on
 	if (s_leds_state) {
@@ -107,10 +107,10 @@ static void fire_leds()
 		while (!led)
 			led = s_leds_state & (1 << (s_leds_index++ % LEDS_NUM));
 
-		// ground to low
-		PORTC &= ~(1 << (s_leds_layer + 4));
+		// turn on ground
+		PORTC |= (1 << ((s_leds_layer % LAYERS_NUM) + 4));
 
-		// leds to high
+		// turn on led
 		PORTA |= (led & 0xff);
 		PORTC |= ((led >> 8) & 0b1111);
 	}
