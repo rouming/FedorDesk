@@ -35,6 +35,9 @@ static uint8_t s_leds_index;
 static uint8_t s_leds_layer;
 static uint16_t	s_leds_state;
 
+// 20mA * 6 = 120mA max
+#define MAX_FIRED_LEDS 6
+
 // initialize timer, interrupt and variable
 static void timer0_init()
 {
@@ -100,20 +103,31 @@ static void fire_leds()
 	// 4..6 C pins to low
 	PORTC &= ~0b01110000;
 
-	// turn on
-	if (s_leds_state) {
+	// nothing to do
+	if (!s_leds_state)
+		return;
+
+	// get copy
+	uint16_t leds_state = s_leds_state;
+	for (uint8_t i = 0; i < MAX_FIRED_LEDS && leds_state; ++i) {
 		uint16_t led = 0;
 		// get set bit in leds state
 		while (!led)
-			led = s_leds_state & (1 << (s_leds_index++ % LEDS_NUM));
+			led = leds_state & (1 << (s_leds_index++ % LEDS_NUM));
 
-		// turn on ground
-		PORTC |= (1 << ((s_leds_layer % LAYERS_NUM) + 4));
+		// avoid of char overflow
+		s_leds_index %= LEDS_NUM;
+
+		// drop found bit
+		leds_state &= ~led;
 
 		// turn on led
 		PORTA |= (led & 0xff);
 		PORTC |= ((led >> 8) & 0b1111);
 	}
+
+	// turn on ground
+	PORTC |= (1 << ((s_leds_layer % LAYERS_NUM) + 4));
 }
 
 // TIMER0 overflow interrupt service routine
