@@ -7,8 +7,8 @@
  * ATMega16
  * 1MHz clock
  * timer 8-bit overflow interrupt every 256 us
- * every 400 8-bit overflow we get ~102.4 ms delay
- * i.e.: 1000ms / (1000'000Hz / 256) * 400 ~ 102.4ms
+ * every 391 8-bit overflow we get ~100.09 ms delay
+ * i.e.: 1000ms / (1000'000Hz / 256) * 391 ~ 100.09 ms
  * for power saving we never fire all leds, we try to flicker them
  * i.e. we flicker every overflow interrupt, i.e. with ~3906.25Hz
  *
@@ -144,8 +144,8 @@ ISR(TIMER0_OVF_vect)
 	// i.e. do persistence of vision (pov) with frequent flicking
 	fire_leds();
 
-	// 400 overflows = ~102 ms delay
-	if (s_overflow == 400) {
+	// 391 overflows = ~100.096 ms delay
+	if (s_overflow == 391) {
 		desk_timer_100ms_callback();
 
 		// reset overflow counter
