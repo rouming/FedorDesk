@@ -72,13 +72,13 @@ void desk_timer_100ms_callback()
 	uint8_t delay;
 	switch (s_leds_state.speed) {
 	case led_speed0:
-		delay = 10; // 1000 ms
-		break;
-	case led_speed1:
 		delay = 5; // 500 ms
 		break;
+	case led_speed1:
+		delay = 3; // 300 ms
+		break;
 	case led_speed2:
-		delay = 2; // 200 ms
+		delay = 1; // 100 ms
 		break;
 	default:
 		// unknown state
