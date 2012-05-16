@@ -133,5 +133,5 @@ void desk_timer_100ms_callback()
 	}
 
 	// fire leds
-	desk_fire_leds(&s_leds_state);
+	desk_fire_leds();
 }
