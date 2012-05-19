@@ -6,12 +6,10 @@
 /*
  * ATMega16
  * 1MHz clock
- * timer 8-bit overflow interrupt every 256 us
- * every 391 8-bit overflow we get ~100.09 ms delay
- * i.e.: 1000ms / (1000'000Hz / 256) * 391 ~ 100.09 ms
- * for power saving we never fire all leds, we try to flicker them
- * i.e. we flicker every overflow interrupt, i.e. with ~3906.25Hz
- *
+ * TIMER0
+ *   We use TIMER0 in CTC mode, i.e. interrupt fires
+ *   when TCNT0 becomes equal to OCR0 i.e. 125 (1MHz/8Khz).
+ *   Every 800 interrupt we will have 10Hz, i.e. 100ms
  *
  * Timers:
  *     http://easyelectronics.ru/avr-uchebnyj-kurs-tajmery.html
@@ -38,14 +36,18 @@ static uint16_t s_leds_mask;
 // initialize timer, interrupt and variable
 static void timer0_init()
 {
-	// No any prescaler
+	// Set CTC mode (Clear Timer on Compare Match) (p.83)
+	// Have to set OCR0 *after*, otherwise it gets reset to 0!
+	TCCR0 |= (1 << WGM01);
+
+	// No prescaler (p.85)
 	TCCR0 |= (1 << CS00);
 
-	// initialize counter
-	TCNT0 = 0;
+	// Set the compare register (OCR0).
+	OCR0 = F_CPU / SAMPLE_RATE;    // 1MHz / 8000Hz = 125
 
-	// enable overflow interrupt
-	TIMSK |= (1 << TOIE0);
+	// Enable Output Compare Match Interrupt when TCNT0 == OCR0 (p.85)
+	TIMSK |= (1 << OCIE0);
 }
 
 static void external_int_init()
@@ -120,9 +122,8 @@ static void fire_leds()
 	PORTC |= (1 << ((s_leds_layer % LAYERS_NUM) + 4));
 }
 
-// TIMER0 overflow interrupt service routine
-// called whenever TCNT0 overflows
-ISR(TIMER0_OVF_vect)
+// TIMER0 Output Compare Match Interrupt service routine
+ISR(TIMER0_COMP_vect)
 {
 	// global variable to count the number of overflows
 	static uint16_t s_overflow = 0;
@@ -134,8 +135,8 @@ ISR(TIMER0_OVF_vect)
 	// i.e. do persistence of vision (pov) with frequent flicking
 	fire_leds();
 
-	// 391 overflows = ~100.096 ms delay
-	if (s_overflow == 391) {
+	// 800 overflows = 100 ms delay
+	if (s_overflow == 800) {
 		desk_timer_100ms_callback();
 
 		// reset overflow counter
