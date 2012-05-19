@@ -10,7 +10,7 @@ MMCU=atmega16
 
 F_CLK=F_CLK=1000000UL
 F_CPU=F_CPU=1000000UL
-CFLAGS=-c -O2 -Wall -gdwarf-2 -mmcu=$(MMCU) -std=gnu99 -D$(F_CLK) -D$(F_CPU)
+CFLAGS=-c -O3 -Wall -gdwarf-2 -mmcu=$(MMCU) -std=gnu99 -D$(F_CLK) -D$(F_CPU)
 LFLAGS=-mmcu=$(MMCU)
 
 all: fedordesk.elf
@@ -27,8 +27,17 @@ flash: all
 
 # Read fuse.
 # To write fuse back use this cmd:
-# (JTAG disabling)
+#   HIGH FUSE
+# 0b10011001 - shipped
+# 0b11011001 (0xD9) - disabled JTAG
+#
+#   LOW FUSE
+# 0b11100001 - shipped
+# 0b11100100 (0xE4) - 8MHz internal oscillator (CKSEL3..0 = 0100)
+#
 # avrdude -c usbasp -p m16 -U hfuse:w:0xD9:m
+# avrdude -c usbasp -p m16 -U lfuse:w:0xE4:m
+
 fuse:
 	avrdude -c usbasp -p m16 -U lfuse:r:lfuse.txt:r
 	avrdude -c usbasp -p m16 -U hfuse:r:hfuse.txt:r
