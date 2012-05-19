@@ -31,12 +31,9 @@
  */
 
 // leds state
-static uint8_t s_leds_index;
 static uint8_t s_leds_layer;
 static uint16_t	s_leds_state;
-
-// 20mA * 6 = 120mA max
-#define MAX_FIRED_LEDS 6
+static uint16_t s_leds_mask;
 
 // initialize timer, interrupt and variable
 static void timer0_init()
@@ -89,7 +86,9 @@ static void hw_fire_leds(const uint16_t* leds, uint8_t y)
 	// save leds state
 	s_leds_layer = y;
 	s_leds_state = *leds;
-	s_leds_index = 0;
+	// 6 max fired leds at a time
+	// 20mA * 6 = 120mA max
+	s_leds_mask = 0b111111;
 }
 
 static void fire_leds()
@@ -107,24 +106,15 @@ static void fire_leds()
 	if (!s_leds_state)
 		return;
 
-	// get copy
-	uint16_t leds_state = s_leds_state;
-	for (uint8_t i = 0; i < MAX_FIRED_LEDS && leds_state; ++i) {
-		uint16_t led = 0;
-		// get set bit in leds state
-		while (!led)
-			led = leds_state & (1 << (s_leds_index++ % LEDS_NUM));
+	// toggle mask
+	s_leds_mask ^= 0b111111111111;
 
-		// avoid of char overflow
-		s_leds_index %= LEDS_NUM;
+	// current fired leds
+	uint16_t leds = s_leds_state & s_leds_mask;
 
-		// drop found bit
-		leds_state &= ~led;
-
-		// turn on led
-		PORTA |= (led & 0xff);
-		PORTC |= ((led >> 8) & 0b1111);
-	}
+	// turn on led
+	PORTA |= (leds & 0xff);
+	PORTC |= ((leds >> 8) & 0b1111);
 
 	// turn on ground
 	PORTC |= (1 << ((s_leds_layer % LAYERS_NUM) + 4));
