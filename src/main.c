@@ -1,6 +1,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 
+#include "sounddata.h"
 #include "fedordesk.h"
 
 /*
@@ -25,6 +27,7 @@
  * BUTTON[0..2] -> PD2, PD3, PB2
  * LED[0..11]   -> PA[0..7], PC[0..3]
  * GR[0..2]     -> PC[4..6]
+ * PD7          -> out speaker PWM
  *
  */
 
@@ -33,7 +36,7 @@ static uint8_t s_leds_layer;
 static uint16_t	s_leds_state;
 static uint16_t s_leds_mask;
 
-// initialize timer, interrupt and variable
+// sampler and leds timer
 static void timer0_init()
 {
 	// Set CTC mode (Clear Timer on Compare Match) (p.83)
@@ -48,6 +51,22 @@ static void timer0_init()
 
 	// Enable Output Compare Match Interrupt when TCNT0 == OCR0 (p.85)
 	TIMSK |= (1 << OCIE0);
+}
+
+// set up Timer 2 to do pulse width modulation on the speaker pin
+static void timer2_init()
+{
+	// Set fast PWM mode  (p.128)
+	TCCR2 |= (1 << WGM21) | (1 << WGM20);
+
+	// Do non-inverting PWM on pin OC2 (p.129)
+	TCCR2 |= (1 << COM21);
+
+	// No prescaler (p.130)
+	TCCR2 |= (1 << CS20);
+
+	// Set initial pulse width to the first sample.
+	OCR2 = 0;
 }
 
 static void external_int_init()
@@ -66,6 +85,7 @@ static void init_io_ports()
 	/*
 	 * LED[0..11]   -> PA[0..7], PC[0..3]
 	 * GR[0..2]     -> PC[4..6]
+	 * PD7 -> out speaker PWM
 	 */
 
 	// 0..7 A pins as output
@@ -74,6 +94,8 @@ static void init_io_ports()
 	DDRC |= 0b00001111;
 	// 4..6 C pins as output
 	DDRC |= 0b01110000;
+	// PWM speaker pin as out
+	DDRD = (1 << DDD7);
 
 	// 0..7 A pins to low
 	PORTA &= ~0b11111111;
@@ -122,6 +144,17 @@ static void fire_leds()
 	PORTC |= (1 << ((s_leds_layer % LAYERS_NUM) + 4));
 }
 
+static void load_audio_sample()
+{
+	static uint16_t s_sample = 0;
+
+	// read audio sample byte to PWM compare register
+	OCR2 = pgm_read_byte(&s_samples[s_sample++ % sizeof(s_samples)]);
+
+	// avoid overflow
+	s_sample = s_sample % sizeof(s_samples);
+}
+
 // TIMER0 Output Compare Match Interrupt service routine
 ISR(TIMER0_COMP_vect)
 {
@@ -130,6 +163,9 @@ ISR(TIMER0_COMP_vect)
 
 	// keep a track of number of overflows
 	s_overflow++;
+
+	// play audio
+	load_audio_sample();
 
 	// fire leds on every interrupt for power savings
 	// i.e. do persistence of vision (pov) with frequent flicking
@@ -163,8 +199,12 @@ int main()
 {
 	// init io ports
 	init_io_ports();
-	// init timer
+
+	// init sampler and leds timer
 	timer0_init();
+
+	// init PWM speaker timer
+	timer2_init();
 
 	// init external interrupts
 	external_int_init();
