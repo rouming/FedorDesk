@@ -8,8 +8,8 @@
 CC=avr-gcc
 MMCU=atmega16
 
-F_CLK=F_CLK=1000000UL
-F_CPU=F_CPU=1000000UL
+F_CLK=F_CLK=8000000UL
+F_CPU=F_CPU=8000000UL
 CFLAGS=-c -O3 -Wall -gdwarf-2 -mmcu=$(MMCU) -std=gnu99 -D$(F_CLK) -D$(F_CPU)
 LFLAGS=-mmcu=$(MMCU)
 
