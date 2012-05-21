@@ -48,8 +48,9 @@ static void timer1_init()
 	// No prescaler (p.110)
 	TCCR1B |= (1 << CS01);
 
-	// Set the compare register (OCR1A).
-	OCR1A = F_CPU / SAMPLE_RATE;
+	// Set the compare register (OCR1A) (p.98-99).
+	// Do not forget about -1, because we count from 0
+	OCR1A = F_CPU / SAMPLE_RATE - 1;
 
 	// Enable Output Compare Match Interrupt when TCNT1 == OCR1A (p.112)
 	TIMSK |= (1 << OCIE1A);
