@@ -165,9 +165,6 @@ ISR(TIMER1_COMPA_vect)
 	// global variable to count the number of overflows
 	static uint16_t s_overflow = 0;
 
-	// keep a track of number of overflows
-	s_overflow++;
-
 	// play audio
 	load_audio_sample();
 
@@ -176,7 +173,7 @@ ISR(TIMER1_COMPA_vect)
 	fire_leds();
 
 	// call desk callback
-	if (s_overflow == SAMPLE_RATE / CB_RATE) {
+	if (++s_overflow == SAMPLE_RATE / CB_RATE) {
 		desk_timer_100ms_callback();
 
 		// reset overflow counter
