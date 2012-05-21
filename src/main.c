@@ -45,8 +45,8 @@ static void timer1_init()
 	// Have to set OCR1A *after*, otherwise it gets reset to 0!
 	TCCR1B |= (1 << WGM12);
 
-	// No prescaler (p.110)
-	TCCR1B |= (1 << CS01);
+	// No prescaler (p.113)
+	TCCR1B |= (1 << CS10);
 
 	// Set the compare register (OCR1A) (p.98-99).
 	// Do not forget about -1, because we count from 0
