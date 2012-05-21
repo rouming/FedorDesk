@@ -30,7 +30,6 @@ typedef struct led_state {
 #define LEDS_NUM    12
 #define LAYERS_NUM  3
 #define BUTTONS_NUM 3
-#define SAMPLE_RATE 8000
 
 void desk_init_leds(hw_fire_leds_t cb);
 void desk_button_pressed(button_t b);

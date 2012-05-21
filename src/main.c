@@ -7,11 +7,10 @@
 
 /*
  * ATMega16
- * 1MHz clock
- * TIMER0
- *   We use TIMER0 in CTC mode, i.e. interrupt fires
- *   when TCNT0 becomes equal to OCR0 i.e. 125 (1MHz/8Khz).
- *   Every 800 interrupt we will have 10Hz, i.e. 100ms
+ * TIMER1
+ *   We use 16-bit TIMER1 in CTC mode, i.e. interrupt fires
+ *   when TCNT1 becomes equal to OCR1A
+ *   Every N interrupt we will have 10Hz, i.e. 100ms
  *
  * Timers:
  *     http://easyelectronics.ru/avr-uchebnyj-kurs-tajmery.html
@@ -31,26 +30,29 @@
  *
  */
 
+#define SAMPLE_RATE 8000 // playback rate, hz
+#define CB_RATE     10   // callback rate, hz
+
 // leds state
 static uint8_t s_leds_layer;
 static uint16_t	s_leds_state;
 static uint16_t s_leds_mask;
 
-// sampler and leds timer
-static void timer0_init()
+// sampler and leds 16-bit timer
+static void timer1_init()
 {
-	// Set CTC mode (Clear Timer on Compare Match) (p.83)
-	// Have to set OCR0 *after*, otherwise it gets reset to 0!
-	TCCR0 |= (1 << WGM01);
+	// Set CTC mode (Clear Timer on Compare Match) (p.109)
+	// Have to set OCR1A *after*, otherwise it gets reset to 0!
+	TCCR1B |= (1 << WGM12);
 
-	// No prescaler (p.85)
-	TCCR0 |= (1 << CS00);
+	// No prescaler (p.110)
+	TCCR1B |= (1 << CS01);
 
-	// Set the compare register (OCR0).
-	OCR0 = F_CPU / SAMPLE_RATE;    // 1MHz / 8000Hz = 125
+	// Set the compare register (OCR1A).
+	OCR1A = F_CPU / SAMPLE_RATE;
 
-	// Enable Output Compare Match Interrupt when TCNT0 == OCR0 (p.85)
-	TIMSK |= (1 << OCIE0);
+	// Enable Output Compare Match Interrupt when TCNT1 == OCR1A (p.112)
+	TIMSK |= (1 << OCIE1A);
 }
 
 // set up Timer 2 to do pulse width modulation on the speaker pin
@@ -155,8 +157,9 @@ static void load_audio_sample()
 	s_sample = s_sample % sizeof(s_samples);
 }
 
-// TIMER0 Output Compare Match Interrupt service routine
-ISR(TIMER0_COMP_vect)
+// TIMER1 Output Compare Match Interrupt service routine
+// works on SAMPLE_RATE
+ISR(TIMER1_COMPA_vect)
 {
 	// global variable to count the number of overflows
 	static uint16_t s_overflow = 0;
@@ -171,8 +174,8 @@ ISR(TIMER0_COMP_vect)
 	// i.e. do persistence of vision (pov) with frequent flicking
 	fire_leds();
 
-	// 800 overflows = 100 ms delay
-	if (s_overflow == 800) {
+	// call desk callback
+	if (s_overflow == SAMPLE_RATE / CB_RATE) {
 		desk_timer_100ms_callback();
 
 		// reset overflow counter
@@ -201,7 +204,7 @@ int main()
 	init_io_ports();
 
 	// init sampler and leds timer
-	timer0_init();
+	timer1_init();
 
 	// init PWM speaker timer
 	timer2_init();
