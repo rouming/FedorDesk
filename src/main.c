@@ -72,6 +72,16 @@ static void timer2_init()
 	OCR2 = 0;
 }
 
+// deinit PWM timer2
+static void timer2_deinit()
+{
+	// disable PWM timer
+	TCCR2 &= ~(1 << CS20);
+
+	// PWM pin to low
+	PORTD &= ~(1 << DDD7);
+}
+
 static void external_int_init()
 {
 	// enable falling edge on INT0, INT1
