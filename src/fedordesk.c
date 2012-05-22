@@ -30,11 +30,11 @@ void desk_init_leds(hw_fire_leds_t cb)
 	s_leds_state.hw_fire_leds = cb;
 }
 
-void desk_button_pressed(button_t b)
+button_t desk_button_pressed(button_t b)
 {
 	// pins jitter? ignore sequential presses in 500ms
 	if (s_leds_state.timer_counter - s_leds_state.last_pressed_ms < 5)
-		return;
+		return s_leds_state.last_pressed_b;
 
 	// set timer of button press
 	s_leds_state.last_pressed_ms = s_leds_state.timer_counter;
@@ -65,6 +65,8 @@ void desk_button_pressed(button_t b)
 		s_leds_state.timer_counter = 0;
 		s_leds_state.last_pressed_ms = 0;
 	}
+
+	return s_leds_state.last_pressed_b;
 }
 
 void desk_timer_100ms_callback()

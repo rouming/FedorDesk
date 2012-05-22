@@ -32,7 +32,7 @@ typedef struct led_state {
 #define BUTTONS_NUM 3
 
 void desk_init_leds(hw_fire_leds_t cb);
-void desk_button_pressed(button_t b);
+button_t desk_button_pressed(button_t b);
 void desk_timer_100ms_callback();
 
 #endif //FEDORDESK_H

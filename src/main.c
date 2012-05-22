@@ -52,6 +52,7 @@ FUSES =
 static uint8_t s_leds_layer;
 static uint16_t	s_leds_state;
 static uint16_t s_leds_mask;
+static uint8_t s_playback;
 
 // sampler and leds 16-bit timer
 static void timer1_init()
@@ -95,6 +96,22 @@ static void timer2_deinit()
 
 	// PWM pin to low
 	PORTD &= ~(1 << DDD7);
+}
+
+static void start_playback()
+{
+	if (s_playback)
+		return;
+	s_playback = 1;
+	timer2_init();
+}
+
+static void stop_playback()
+{
+	if (!s_playback)
+		return;
+	s_playback = 0;
+	timer2_deinit();
 }
 
 static void external_int_init()
@@ -208,17 +225,26 @@ ISR(TIMER1_COMPA_vect)
 
 ISR(INT0_vect)
 {
-	desk_button_pressed(button0);
+	if (button_unknown == desk_button_pressed(button0))
+		stop_playback();
+	else
+		start_playback();
 }
 
 ISR(INT1_vect)
 {
-	desk_button_pressed(button1);
+	if (button_unknown == desk_button_pressed(button1))
+		stop_playback();
+	else
+		start_playback();
 }
 
 ISR(INT2_vect)
 {
-	desk_button_pressed(button2);
+	if (button_unknown == desk_button_pressed(button2))
+		stop_playback();
+	else
+		start_playback();
 }
 
 int main()
@@ -228,9 +254,6 @@ int main()
 
 	// init sampler and leds timer
 	timer1_init();
-
-	// init PWM speaker timer
-	timer2_init();
 
 	// init external interrupts
 	external_int_init();
