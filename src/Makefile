@@ -28,11 +28,11 @@ flash: all
 # Read fuse.
 # To write fuse back use this cmd:
 #   HIGH FUSE
-# 0b10011001 - shipped
+# 0b10011001 (0x99) - shipped
 # 0b11011001 (0xD9) - disabled JTAG
 #
 #   LOW FUSE
-# 0b11100001 - shipped
+# 0b11100001 (0xE1) - shipped
 # 0b11100100 (0xE4) - 8MHz internal oscillator (CKSEL3..0 = 0100)
 #
 # avrdude -c usbasp -p m16 -U hfuse:w:0xD9:m

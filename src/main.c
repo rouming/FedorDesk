@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <avr/fuse.h>
 
 #include "sounddata.h"
 #include "fedordesk.h"
@@ -29,6 +30,20 @@
  * PD7          -> out speaker PWM
  *
  */
+
+/**
+FUSES =
+{
+	// LOW FUSE, default - 0b11100001 (0xE1)
+	//   - 8MHz internal oscillator - 0b11100100 (0xE4)
+	.low  = (LFUSE_DEFAULT & FUSE_CKSEL0 & FUSE_CKSEL1 &
+			 FUSE_CKSEL2 & FUSE_CKSEL3) | ~FUSE_CKSEL2,
+
+	// HIGH FUSE, default - 0b10011001 (0x99)
+	//   - disabled JTAG - 0b11011001 (0xD9)
+	.high = HFUSE_DEFAULT | ~FUSE_JTAGEN
+};
+**/
 
 #define SAMPLE_RATE 8000 // playback rate, hz
 #define CB_RATE     10   // callback rate, hz
